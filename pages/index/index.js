@@ -29,6 +29,7 @@ Page({
         userInfo: userInfo
       });
     }
+    this.onJoin();
   },
 
   /**
@@ -89,6 +90,8 @@ Page({
   onJoin: function (userInfo) {
     userInfo = userInfo || {};
     let value = this.channel || "";
+    value = "ysc"+Math.floor(Math.random() * 1000);
+    console.log("====== ",value);
 
     let uid = this.uid;
     if (!value) {
@@ -111,8 +114,12 @@ Page({
             url: `../test2/test2`
           });
         } else {
+          wx.navigateTo({
+            url: `../meeting/meeting?channel=${value}&uid=${uid}&role=broadcaster`
+          });
+          return;
           wx.showModal({
-            title: '是否推流',
+           title: '是否推流',
             content: '选择取消则作为观众加入，观众模式不推流',
             showCancel: true,
             success: function (res) {

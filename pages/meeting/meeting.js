@@ -563,7 +563,7 @@ Page({
         // callback to expose sdk logs
         Utils.log(text);
       };
-      AgoraMiniappSDK.LOG.setLogLevel(-1);
+      AgoraMiniappSDK.LOG.setLogLevel(0);
       this.client = client;
       client.setRole(this.role);
       client.init(APPID, () => {
@@ -575,6 +575,7 @@ Page({
           if (this.isBroadcaster()) {
             client.publish(url => {
               Utils.log(`client publish success`);
+              this.startChannelMediaRelay(uid, channel);
               resolve(url);
             }, e => {
               Utils.log(`client publish failed: ${e.code} ${e.reason}`);
@@ -593,7 +594,43 @@ Page({
       });
     });
   },
+  startChannelMediaRelay: function(uid, channel) {
+    const config = new AgoraMiniappSDK.ChannelMediaRelayConfiguration()
+    config.setDestChannelInfo("ddd", {
+      channelName: "ddd",
+      token: null,
+      uid: parseInt("123123123"),
+    });
 
+    config.setSrcChannelInfo({
+      channelName: channel,
+      token: null,
+      uid: +new Date() % 10000, 
+    });
+
+    this.client.on('channel-media-relay-event', function (evt) {
+      console.log('channel-media-relay-event: ' + JSON.stringify(evt));
+    });
+    this.client.on('channel-media-relay-state', function (evt) {
+      console.log('channel-media-relay-state: ' + JSON.stringify(evt));
+    });
+    
+    this.client.startChannelMediaRelay(config, console.log);
+
+    setTimeout(() => {
+      config.setDestChannelInfo("dddd", {
+        channelName: "dddd",
+        token: null,
+        uid: parseInt("123123123"),
+      });
+      this.client.updateChannelMediaRelay(config, console.log);
+    }, 10 * 1000);
+
+    setTimeout(() => {
+      this.client.stopChannelMediaRelay(console.log); 
+    }, 20 * 1000);
+
+  },
   reinitAgoraChannel: function(uid, channel) {
     return new Promise((resolve, reject) => {
       let client = {}
@@ -610,7 +647,7 @@ Page({
         // callback to expose sdk logs
         Utils.log(text);
       };
-      AgoraMiniappSDK.LOG.setLogLevel(-1);
+      AgoraMiniappSDK.LOG.setLogLevel(0);
       let uids = this.data.media.map(item => {
         return item.uid;
       });
